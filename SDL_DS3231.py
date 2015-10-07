@@ -31,7 +31,6 @@
 # SOFTWARE.
 
 from datetime import datetime
-
 import time
 import smbus
 
@@ -194,25 +193,3 @@ class SDL_DS3231():
         byte_tmsb = self._bus.read_byte_data(self._addr, 0x11)
         byte_tlsb = bin(self._bus.read_byte_data(self._addr, 0x12))[2:].zfill(8)
         return byte_tmsb + int(byte_tlsb[0]) * 2 ** (-1) + int(byte_tlsb[1]) * 2 ** (-2)
-
-    ###########################
-    # AT24C32 Code
-    ###########################
-
-    def set_current_AT24C32_address(self, address):
-        a1 = address / 256
-        a0 = address % 256
-        self._bus.write_i2c_block_data(self._at24c32_addr, a1, [a0])
-
-    def read_AT24C32_byte(self, address):
-        # print "i2c_address =0x%x eepromaddress = 0x%x  " % (self._at24c32_addr, address)
-
-        self.set_current_AT24C32_address(address)
-        return self._bus.read_byte(self._at24c32_addr)
-
-    def write_AT24C32_byte(self, address, value):
-        # print "i2c_address =0x%x eepromaddress = 0x%x value = 0x%x %i " % (self._at24c32_addr, address, value, value)
-        a1 = address / 256
-        a0 = address % 256
-        self._bus.write_i2c_block_data(self._at24c32_addr, a1, [a0, value])
-        time.sleep(0.20)
