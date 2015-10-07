@@ -31,7 +31,6 @@
 # SOFTWARE.
 
 from datetime import datetime
-import time
 import smbus
 
 
@@ -71,24 +70,16 @@ class SDL_DS3231():
     _REG_YEAR = 0x06
     _REG_CONTROL = 0x07
 
-
-
-    ###########################
-    # DS3231 Code
-    ###########################
-    def __init__(self, twi=1, addr=0x68, at24c32_addr=0x56):
+    def __init__(self, twi=1, address=0x68):
         self._bus = smbus.SMBus(twi)
-        self._addr = addr
-        self._at24c32_addr = at24c32_addr
+        self._address = address
 
     def _write(self, register, data):
-        # print "addr =0x%x register = 0x%x data = 0x%x %i " % (self._addr, register, data,_bcd_to_int(data))
-        self._bus.write_byte_data(self._addr, register, data)
+        self._bus.write_byte_data(self._address, register, data)
 
     def _read(self, data):
-        returndata = self._bus.read_byte_data(self._addr, data)
-        # print "addr = 0x%x data = 0x%x %i returndata = 0x%x %i " % (self._addr, data, data, returndata, _bcd_to_int(returndata))
-        return returndata
+        return_data = self._bus.read_byte_data(self._address, data)
+        return return_data
 
     def _read_seconds(self):
         return _bcd_to_int(self._read(self._REG_SECONDS) & 0x7F)  # wipe out the oscillator on bit
@@ -98,7 +89,7 @@ class SDL_DS3231():
 
     def _read_hours(self):
         d = self._read(self._REG_HOURS)
-        if (d == 0x64):
+        if d == 0x64:
             d = 0x40
         return _bcd_to_int(d & 0x3F)
 
@@ -137,7 +128,7 @@ class SDL_DS3231():
                         self._read_minutes(), self._read_seconds(), 0, tzinfo=tzinfo)
 
     def write_all(self, seconds=None, minutes=None, hours=None, day=None,
-                  date=None, month=None, year=None, save_as_24h=True):
+                  date=None, month=None, year=None):
         """Direct write un-none value.
         Range: seconds [0,59], minutes [0,59], hours [0,23],
                day [0,7], date [1-31], month [1-12], year [0-99].
@@ -178,18 +169,18 @@ class SDL_DS3231():
                 raise ValueError('Day is out of range [1,7].')
             self._write(self._REG_DAY, _int_to_bcd(day))
 
-    def write_datetime(self, dt):
+    def write_datetime(self, date_time):
         """Write from a datetime.datetime object.
         """
-        self.write_all(dt.second, dt.minute, dt.hour,
-                       dt.isoweekday(), dt.day, dt.month, dt.year % 100)
+        self.write_all(date_time.second, date_time.minute, date_time.hour,
+                       date_time.isoweekday(), date_time.day, date_time.month, date_time.year % 100)
 
     def write_now(self):
         """Equal to DS3231.write_datetime(datetime.datetime.now()).
         """
         self.write_datetime(datetime.now())
 
-    def getTemp(self):
-        byte_tmsb = self._bus.read_byte_data(self._addr, 0x11)
-        byte_tlsb = bin(self._bus.read_byte_data(self._addr, 0x12))[2:].zfill(8)
+    def get_temp(self):
+        byte_tmsb = self._bus.read_byte_data(self._address, 0x11)
+        byte_tlsb = bin(self._bus.read_byte_data(self._address, 0x12))[2:].zfill(8)
         return byte_tmsb + int(byte_tlsb[0]) * 2 ** (-1) + int(byte_tlsb[1]) * 2 ** (-2)
