@@ -15,6 +15,4 @@ The driver works with Python 2 and Python 3. Depeneds on the packages ```python-
 
 Run testDS3231.py to test. The current system date and time will be written to the RTC and then the date, time and temperature will be read.
 
-More Information on www.switchdoc.com
-
 
